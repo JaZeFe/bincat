@@ -26,6 +26,8 @@ import re
 import idc
 import idaapi
 import idautils
+import sys
+from utils import safe_askfile
 from dump_binary import dump_binary
 from PyQt5 import QtCore, QtWidgets, QtGui
 import idabincat.hexview as hexview
@@ -36,6 +38,7 @@ from analyzer_conf import AnalyzerConfig
 # Logging
 bc_log = logging.getLogger('bincat.gui')
 bc_log.setLevel(logging.DEBUG)
+
 
 
 class EditConfigurationFileForm_t(QtWidgets.QDialog):
@@ -285,9 +288,7 @@ class TaintLaunchForm_t(QtWidgets.QDialog):
         if self.chk_remap.isChecked():
             if (self.s.remapped_bin_path is None or
                     not os.path.isfile(self.s.remapped_bin_path)):
-                # IDA 6/7 compat
-                askfile = idaapi.ask_file if hasattr(idaapi, 'ask_file') else idaapi.askfile_c
-                fname = askfile(1, None, "Save remapped binary")
+                fname = safe_askfile(1, None, "Save remapped binary")
                 if not fname:
                     bc_log.error(
                         'No filename provided. You can provide a filename or '
@@ -1356,7 +1357,7 @@ class BinCATConfigurationsForm_t(idaapi.PluginForm):
             return
         index = selectionModel.selectedRows()[0].row()
         name = self.s.configurations.names_cache[index]
-        fname = idaapi.askfile_c(1, "*.ini", "Save exported configuration")
+        fname = safe_askfile(1, "*.ini", "Save exported configuration")
         if fname:
             with open(fname, 'w') as f:
                 f.write(str(self.s.configurations[name]))
@@ -1545,7 +1546,7 @@ class HandleRemap(idaapi.action_handler_t):
 
     def activate(self, ctx):
         # display config window
-        fname = idaapi.askfile_c(1, "*.*", "Save to binary")
+        fname = safe_askfile(1, "*.*", "Save to binary")
         if fname:
             dump_binary(fname)
             self.state.remapped_bin_path = fname

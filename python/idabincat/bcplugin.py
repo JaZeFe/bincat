@@ -48,6 +48,7 @@ import idabincat.npkgen
 from idabincat.plugin_options import PluginOptions
 from idabincat.analyzer_conf import AnalyzerConfig, AnalyzerConfigurations
 from idabincat.gui import GUI
+from idabincat.utils import guess_file_path
 import pybincat
 
 from PyQt5 import QtCore
@@ -650,18 +651,7 @@ class State(object):
         filepath = self.current_config.binary_filepath
         if os.path.isfile(filepath):
             return filepath
-        # try to use idaapi.get_input_file_path
-        filepath = idaapi.get_input_file_path()
-        if os.path.isfile(filepath):
-            return filepath
-        # get_input_file_path returns file path from IDB, which may not
-        # exist locally if IDB has been moved (eg. send idb+binary to
-        # another analyst)
-        filepath = idc.GetIdbPath().replace('idb', 'exe')
-        if os.path.isfile(filepath):
-            return filepath
-        # give up
-        return None
+        return guess_file_path()
 
     def start_analysis(self, config_str=None):
         """

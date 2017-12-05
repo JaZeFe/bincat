@@ -31,6 +31,7 @@ import idabincat.netnode
 import idautils
 import ida_segment
 from idabincat.plugin_options import PluginOptions
+from idabincat.utils import guess_file_path
 
 # Logging
 bc_log = logging.getLogger('bincat-cfg')
@@ -445,14 +446,9 @@ class AnalyzerConfig(object):
         arch = ConfigHelpers.get_arch(analysis_start_va)
         config.set('program', 'architecture', arch)
 
-        input_file = idaapi.get_input_file_path()
+        input_file = guess_file_path()
         if not os.path.isfile(input_file):
-            # get_input_file_path returns file path from IDB, which may not
-            # exist locally if IDB has been moved (eg. send idb+binary to
-            # another analyst)
-            guessed_path = idc.GetIdbPath().replace('idb', 'exe')
-            if os.path.isfile(guessed_path):
-                input_file = guessed_path
+            error("Could not find input file")
 
         ftype = ConfigHelpers.get_file_type()
         config.set('program', 'filepath', '"%s"' % input_file)
